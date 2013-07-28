@@ -47,28 +47,27 @@ if ($ARGV[0] eq '-is') {
 }
 
 sub check_r_m_p {
-	if ( ($ARGV[1] < 0) && ($ARGV[2] < 1) ) {
-		print "neteisingi kodo parametrai r ir m\n";
-		exit;
+    if ( ($ARGV[1] < 0) && ($ARGV[2] < 1) ) {
+        print "neteisingi kodo parametrai r ir m\n";
+        exit;
     } else {
- 	    $r = $ARGV[1];
- 	    $m = $ARGV[2];
+        $r = $ARGV[1];
+ 	$m = $ARGV[2];
     }
     
     if ( ($ARGV[3] < 0) or ($ARGV[3] > 1)) {
-	    print "neteisingai nurodyta tikimybe\n";
-	    exit;
+        print "neteisingai nurodyta tikimybe\n";
+	exit;
     } else {
-	    $p = $ARGV[3];
+	$p = $ARGV[3];
     }
 } 
 
 
 
 sub usage {
-	#my $in = $0;
-	print "$0 -is|-id|-ts|-te|-int r m tikimybe [input_file] [output_file]";
-	exit();
+    print "$0 -is|-id|-ts|-te|-int r m tikimybe [input_file] [output_file]";
+    exit();
 }
 
 
@@ -84,7 +83,7 @@ sub usage {
 #     $out-  is gautu vektoriu issaugoto paveiksliuko pavadinimas 
 # Out: 
 sub image_send {
-	my $r = shift;
+    my $r = shift;
     my $m = shift;
     my $input = shift;
     my $out = shift;
@@ -94,69 +93,61 @@ sub image_send {
     (my $vardai, my $matrix, my $n) = generate_matrix($r, $m);
     
 	
-	my $img = new Image::BMP(
+    my $img = new Image::BMP(
 	        file            => "$input",
-	);
+    );
 	
 	
 	
-	my $plotis  = $img->{Width} - 1;
-	my $aukstis = $img->{Height} -1 ; 
-	my @binary_text;
+    my $plotis  = $img->{Width} - 1;
+    my $aukstis = $img->{Height} -1 ; 
+    my @binary_text;
 	
 	
-	for my $width (0..$plotis ) {
-			for my $height (0..$aukstis) {
-				#$picture_ref->[$width][$height] = $img->xy_index($width,$height);
-				push @binary_text, split (//, sprintf ("%08b", $img->xy_index($width,$height) ) );
+    for my $width (0..$plotis ) {
+         for my $height (0..$aukstis) {
+             #$picture_ref->[$width][$height] = $img->xy_index($width,$height);
+             push @binary_text, split (//, sprintf ("%08b", $img->xy_index($width,$height) ) );
 				
-			}
-	}
+         }
+    }
 	
 	
-	my $string = join "", @binary_text;
+    my $string = join "", @binary_text;
 	
-	my $length_str = length($string);
+    my $length_str = length($string);
 	
-	(my $blokai, my $liko) = get_blocks($n, $string, $length_str);
+    (my $blokai, my $liko) = get_blocks($n, $string, $length_str);
 # 	
     my $encoded;
     my $su_triuksmu;
     my @encoded_vec;
-    #print join "", @$blokai, "\n";
-	for my $block (@$blokai) {
- 		#my @zodis = split //, $block;
- 		my $vector = Bit::Vector->new_Bin($n,$block);
+
+    for my $block (@$blokai) {
+        my $vector = Bit::Vector->new_Bin($n,$block);
         $su_triuksmu = make_noise($vector, $p);
- 		push @encoded_vec, $su_triuksmu;
-		
-	}
+        push @encoded_vec, $su_triuksmu;	
+    }
 	
 	
-	
-	my @temp;
-	for my $enc_vec (@encoded_vec) {
-		my $string = $enc_vec->to_Bin;
-		push @temp, split (//, $string);
-		#print chr (oct "0b$string");
+    my @temp;
+    for my $enc_vec (@encoded_vec) {
+        my $string = $enc_vec->to_Bin;
+        push @temp, split (//, $string);
     }
     
     my $rez = join "", @temp;
     ($blokai, $liko) = get_blocks(8, $rez, $length_str);
-    
-#     #print Dumper ($ats);
      
     my $z = 0;
     for  my $i (0 .. $plotis) {
-		 for my  $j (0 .. $aukstis ) {
- 			$img->xy_index($i,$j, oct "0b$blokai->[$z++]" );
- 			#print $linijos[$i][$j], " ", $i, $j, "\n" if $linijos[$i][$j] < 255;
- 		}
+        for my  $j (0 .. $aukstis ) {
+            $img->xy_index($i,$j, oct "0b$blokai->[$z++]" );
  	}
+    }
 	
-	 	$img->save($out);
-	    
-	  
+    $img->save($out);
+	      
 }
 
 
@@ -172,83 +163,75 @@ sub image_send {
 # Out: 
 sub image_encode_decode {
 	
-	my $r = shift;
+    my $r = shift;
     my $m = shift;
     my $input = shift;
     my $out = shift;
-     my $p = shift;
+    my $p = shift;
     
     (my $vardai, my $matrix, my $n) = generate_matrix($r, $m);
     
 	
-	my $img = new Image::BMP(
+    my $img = new Image::BMP(
 	        file            => "$input",
-	);
+    );
 	
 	
 	
-	my $plotis  = $img->{Width} - 1;
-	my $aukstis = $img->{Height} -1 ; 
-	my @binary_text;
+    my $plotis  = $img->{Width} - 1;
+    my $aukstis = $img->{Height} -1 ; 
+    my @binary_text;
 	
 	
-	for my $width (0..$plotis ) {
-			for my $height (0..$aukstis) {
-				#$picture_ref->[$width][$height] = $img->xy_index($width,$height);
-				push @binary_text, split (//, sprintf ("%08b", $img->xy_index($width,$height) ) );
-				
-			}
-	}
+    for my $width (0..$plotis ) {
+        for my $height (0..$aukstis) {
+            push @binary_text, split (//, sprintf ("%08b", $img->xy_index($width,$height) ) );		
+        }
+    }
 	
 	
-	my $string = join "", @binary_text;
+    my $string = join "", @binary_text;
 	
-	(my $blokai, my $last) = get_blocks($n, $string, length($string));
+    (my $blokai, my $last) = get_blocks($n, $string, length($string));
 	
-		my @encoded_vec;
-		#my @zodis ;
-	    my $encoded;
-	    my $su_triuksmu;
+     my @encoded_vec;	
+     my $encoded;
+     my $su_triuksmu;
 	    
-	    #print join "", @$blokai, "\n";
-		for my $block (@$blokai) {
-	 		my @zodis = split //, $block;
-	 		$encoded = encode_word($matrix, \@zodis);
-	 		$su_triuksmu = make_noise($encoded, $p); 
-	 		push @encoded_vec, $su_triuksmu;
-			#print $block chr(oct "0b$block");
-		}
+
+    for my $block (@$blokai) {
+        my @zodis = split //, $block;
+        $encoded = encode_word($matrix, \@zodis);
+        $su_triuksmu = make_noise($encoded, $p); 
+        push @encoded_vec, $su_triuksmu;
+        #print $block chr(oct "0b$block");
+    }
 		
-		#print scalar @encoded_vec, scalar @$blokai, "\n";
+
 		
-		my @decoded;
-		my $su_triuksmu_copy;
-		my $coef;
+    my @decoded;
+    my $su_triuksmu_copy;
+    my $coef;
 		
-		for my $enc_vec (@encoded_vec) {
-			$su_triuksmu_copy = $enc_vec->Clone();
-		    $coef = find_coef($vardai, $matrix, $su_triuksmu_copy, $r, $m);
-		    push @decoded, @$coef;
-	    }
-	    
-	    #print "\n", scalar @decoded, "\n";
-	    
-	    my $rez = join "", @decoded;
-	#     
-	# 
+    for my $enc_vec (@encoded_vec) {
+        $su_triuksmu_copy = $enc_vec->Clone();
+        $coef = find_coef($vardai, $matrix, $su_triuksmu_copy, $r, $m);
+        push @decoded, @$coef;
+    }
+
+    my $rez = join "", @decoded;
 	
-	    #print $rez, "\n";
-	    ($blokai, $last) = get_blocks(8, $rez, length($string));
+    ($blokai, $last) = get_blocks(8, $rez, length($string));
 	
-	 my $z = 0;
-     for  my $i (0 .. $plotis) {
-		 for my  $j (0 .. $aukstis ) {
- 			$img->xy_index($i,$j, oct "0b$blokai->[$z++]" );
- 			#print $linijos[$i][$j], " ", $i, $j, "\n" if $linijos[$i][$j] < 255;
- 		}
+    my $z = 0;
+    for  my $i (0 .. $plotis) {
+        for my  $j (0 .. $aukstis ) {
+            $img->xy_index($i,$j, oct "0b$blokai->[$z++]" );
+ 	    #print $linijos[$i][$j], " ", $i, $j, "\n" if $linijos[$i][$j] < 255;
  	}
+    }
 	
-	 	$img->save($out);
+    $img->save($out);
 
 }
 
@@ -265,43 +248,41 @@ sub send_text {
     
     (my $vardai, my $matrix, my $n) = generate_matrix($r, $m);
     
-	my $block_size = $n;
+    my $block_size = $n;
 	
-	print "Iveskite teksta: baigite <ctrl-d>\n";
-	my $string;
-	{
-    local( $/, *FH ) ;
-    
-    $string = <STDIN>
+     print "Iveskite teksta: baigite <ctrl-d>\n";
+     my $string;
+	
+    {
+        local( $/, *FH ) ;
+        $string = <STDIN>
     }
 
 
 	
-	my $text = text_to_binary($string);
-	#@print "$text\n";
-	(my $blokai, my $liko) = get_blocks(8, $text, length($text));
-	#print $n, " ", $liko, "\n";
+    my $text = text_to_binary($string);
+    #@print "$text\n";
+    (my $blokai, my $liko) = get_blocks(8, $text, length($text));
+    #print $n, " ", $liko, "\n";
 	
 	
     my $encoded;
     my $su_triuksmu;
     my @encoded_vec;
     #print join "", @$blokai, "\n";
-	for my $block (@$blokai) {
- 		#my @zodis = split //, $block;
- 		my $vector = Bit::Vector->new_Bin(8,$block);
+    for my $block (@$blokai) {
+        #my @zodis = split //, $block;
+ 	my $vector = Bit::Vector->new_Bin(8,$block);
         $su_triuksmu = make_noise($vector, $p);
- 		push @encoded_vec, $su_triuksmu;
-		
-	}
+ 	push @encoded_vec, $su_triuksmu;
+    }
 	
 	
 	
-	my @temp;
-	for my $enc_vec (@encoded_vec) {
-		my $string = $enc_vec->to_Bin;
-		push @temp, split (//, $string);
-		#print chr (oct "0b$string");
+    my @temp;
+    for my $enc_vec (@encoded_vec) {
+        my $string = $enc_vec->to_Bin;
+        push @temp, split (//, $string);
     }
     
     my $rez = join "", @temp;
@@ -310,12 +291,9 @@ sub send_text {
     #print Dumper ($ats);
      
     print "\n";
-     for my $word (@$blokai) {
- 	    #print "$word\n";
- 	    print chr(oct "0b$word");
-    }
-	    
-	  
+    for my $word (@$blokai) {
+        print chr(oct "0b$word");
+    }	  
 }
 
 # Nuskaito ir suskaido teksta i reikiamo ilgio vektorius ir uzkodavus
@@ -325,59 +303,54 @@ sub send_text {
 #     $p - lraipymo tikimybe
 # Out:  
 sub code_decode_text {
-	my $r = shift;
+    my $r = shift;
     my $m = shift;
     my $p = shift;
     
     (my $vardai, my $matrix, my $n) = generate_matrix($r, $m);
     
-	my $block_size = $n;
-	my $string;
-	print "Iveskite teksta: baigite <ctrl-d>\n";
-	{
-    local( $/, *FH ) ;
-    
-    $string = <STDIN>
+    my $block_size = $n;
+    my $string;
+    print "Iveskite teksta: baigite <ctrl-d>\n";
+    {
+        local( $/, *FH ) ;
+        $string = <STDIN>
     }
 	
 
+    my $text = text_to_binary($string);
+    #print "$text\n";
+    (my $blokai, my $liko) = get_blocks($n, $text, length($text));
+    #print $n, " ", $liko, "\n";
 	
-	my $text = text_to_binary($string);
-	#print "$text\n";
-	(my $blokai, my $liko) = get_blocks($n, $text, length($text));
-	#print $n, " ", $liko, "\n";
-	
-	my @encoded_vec;
-	#my @zodis ;
+    my @encoded_vec;
+    #my @zodis ;
     my $encoded;
     my $su_triuksmu;
     
     #print join "", @$blokai, "\n";
-	for my $block (@$blokai) {
- 		my @zodis = split //, $block;
- 		$encoded = encode_word($matrix, \@zodis);
- 		$su_triuksmu = make_noise($encoded, $p); 
- 		push @encoded_vec, $su_triuksmu;
-		#print $block chr(oct "0b$block");
-	}
+    for my $block (@$blokai) {
+        my @zodis = split //, $block;
+        $encoded = encode_word($matrix, \@zodis);
+        $su_triuksmu = make_noise($encoded, $p); 
+        push @encoded_vec, $su_triuksmu;
+	#print $block chr(oct "0b$block");
+    }
 	
-	#print scalar @encoded_vec, scalar @$blokai, "\n";
 	
-	my @decoded;
-	my $su_triuksmu_copy;
-	my $coef;
+    my @decoded;
+    my $su_triuksmu_copy;
+    my $coef;
 	
-	for my $enc_vec (@encoded_vec) {
-		$su_triuksmu_copy = $enc_vec->Clone();
-	    $coef = find_coef($vardai, $matrix, $su_triuksmu_copy, $r, $m);
-	    push @decoded, @$coef;
+    for my $enc_vec (@encoded_vec) {
+        $su_triuksmu_copy = $enc_vec->Clone();
+        $coef = find_coef($vardai, $matrix, $su_triuksmu_copy, $r, $m);
+        push @decoded, @$coef;
     }
     
     #print "\n", scalar @decoded, "\n";
     
     my $rez = join "", @decoded;
-#     
-# 
 
     #print $rez, "\n";
     ($blokai, $liko) = get_blocks(8, $rez, length($text));
@@ -385,9 +358,9 @@ sub code_decode_text {
     #print Dumper ($ats);
      
     print "\n";
-     for my $word (@$blokai) {
- 	    #print "$word\n";
- 	    print chr(oct "0b$word");
+    for my $word (@$blokai) {
+        #print "$word\n";
+        print chr(oct "0b$word");
     }
     
     #print scalar @, " ", scalar @encoded_vec, "\n";
